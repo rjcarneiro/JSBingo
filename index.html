@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1
+              <meta name="description" content="">
+              <meta name="author" content="">
+        <style type="text/css">
+            .list-inline>li { margin: 2px;}
+            body { padding-top: 70px !important; }
+            .mydiv {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                margin-left: -12px;
+                margin-top: -12px;
+            }
+            .carneiro{
+                display: none;
+            }
+
+            .disclaimer{
+                line-height:60px;
+                margin: 20px;
+            }
+        </style>
+        <title>JS Bingo</title>
+
+        <!-- Bootstrap core CSS -->
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+        <!-- Custom styles for this template -->
+        <link href="http://getbootstrap.com/examples/justified-nav/justified-nav.css" rel="stylesheet">
+        <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+        <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+        <script src="http://getbootstrap.com/assets/js/ie-emulation-modes-warning.js"></script>
+
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+          <![endif]-->
+    </head>
+
+    <body>
+        <nav class="navbar navbar-inverse navbar-fixed-top carneiro">
+            <div class="container">
+
+                <div class="navbar-left">
+                    <button type="button" class="btn btn-primary navbar-btn" id="rollIt"><span class="glyphicon glyphicon-plus"></span></button>
+                    <button type="button" class="btn btn-warning navbar-btn" id="reverse"><span class="glyphicon glyphicon-repeat"></span></button>
+                </div>
+
+                <div class="navbar-right">                    
+                    <!--<button type="button" class="btn btn-primary navbar-btn" id="justDoIt"><span class="glyphicon glyphicon-road"></span></button>-->
+                    <button type="button" class="btn btn-primary navbar-btn" id="winnersBtn"><span class="glyphicon glyphicon-sunglasses"></span></button>
+                    <button type="button" class="btn btn-info navbar-btn" id="line">Linha</button>          
+                    <button type="button" class="btn btn-success navbar-btn" id="bingo">Bingo!</button>
+                </div>
+            </div>
+        </nav>
+        <div class="mydiv">
+            <img src="ajax-loader.gif" alt="" title="" />
+        </div>
+
+        <div class="container carneiro">
+            <div class="row">
+                <div class="col-md-9">
+                    <!--<ul class="list-inline" id="users">
+                    </ul>-->
+                    <canvas id="canvas" width="690" height="600">
+                        <p>Your browser does not support HTML 5 Canvas</p>
+                    </canvas>
+                </div>
+
+                <div class="col-md-3">
+                    <ul id="usersLeft" class="list-group">
+                    </ul>
+                </div>
+            </div>
+        </div> <!-- /container -->
+
+        <div id="tags" class="hidden">
+        </div>
+
+        <div class="modal fade" id="winnersModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">&nbsp;</h4>
+                    </div>
+                    <div class="modal-body">
+                        <h1 class="text-center"><strong><span id="winnerName"></span></strong></h1>
+                        <p>&nbsp;</p>
+                        <div class="row text-center" id="winnerPicDiv">
+                            <img id="winnerPic" src="pips/André Correia.JPG" alt="" width="300" title="" class="img-circle" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="disclaimer" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h1 class="modal-title">&nbsp;</h1>
+                    </div>
+                    <div class="modal-body ">
+                        <h1 class="text-center text-danger"><strong>AVISO</strong></h1>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <div class="row text-center bg-danger">
+                            <h2 class="disclaimer">Toda a informação apresentada durante o sorteio <br/> é gerada aleatoriamente!</h2>
+                        </div>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="pips" class="hidden"></div>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script src="http://getbootstrap.com/assets/js/ie10-viewport-bug-workaround.js"></script>
+        <script src="js/bootstrap.js" type="text/javascript"></script>
+        <script src="js/tagcanvas.min.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            // Setup
+            var showPictures = false;
+
+            // Do not change here
+            var canRoll = true;
+            var sounds = [];
+            var playedSounds = [];
+            var winners = [];
+            var music = null;
+            var users = null;
+            var LINE = "LINHA!";
+            var BINGO = "BINGO!";
+
+            var startDate = null;
+            var endDate = null;
+
+            var o = {
+                textFont: 'Arial, Helvetica, sans-serif',
+                maxSpeed: 0.05,
+                minSpeed: 0.01,
+                textColour: '#039',
+                textHeight: 25,
+                outlineMethod: 'colour',
+                fadeIn: 800,
+                outlineColour: '#900',
+                outlineOffset: 0,
+                depth: 0.97,
+                minBrightness: 0.2,
+                wheelZoom: false,
+                reverse: true,
+                shadowBlur: 2,
+                shuffleTags: true,
+                shadowOffset: [1, 1],
+                stretchX: 1.7,
+                initial: [0, 0.1],
+                clickToFront: 600,
+                noMouse: true
+            };
+
+            window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+                alert(errorMsg);
+            };
+
+            $(function () {
+
+                // Load all people
+                $.getJSON("data/users.json", function (response) {
+
+                    users = response.data;
+                    for (var i = 0; i < users.length; i++) {
+                        $("#tags").append("<a href='javascript:void(0);' alt='" + users[i] + "'>" + users[i] + "</a>");
+                        if (showPictures) {
+                            $("#pips").append("<img src='pips/" + users[i] + ".jpg' alt='" + users[i] + "' title='" + users[i] + "'/>");
+                        }
+                    }
+
+                    StartCloudTags();
+
+                    $("#rollIt").on("click", function () {
+                        RollIt();
+                    });
+
+                    $("#justDoIt").on("click", function () {
+                        $("#winnersModal").modal('toggle');
+                        setInterval(function () {
+                            var value = users.pop();
+                            $("#usersLeft").append("<li class=\"list-group-item list-group-item-warning\">" + value + "</li>");
+                            $("#winnerName").text(value);
+                            $("#winnerPic").attr("src", "pips/" + value + ".jpg");
+                            $("#winnerPic").attr("title", value);
+                            $("#winnerPic").attr("alt", value);
+                        }, 1000);
+                    });
+
+                    $("#line").on("click", function () {
+                        $("#usersLeft").append("<li class=\"list-group-item list-group-item-info\">" + LINE + "</li>");
+                        $("#line").attr("disabled", "disabled");
+                    });
+
+                    $("#reverse").on("click", function () {
+                        var t = $("#usersLeft li:last-child");
+
+                        if (t.length === 0)
+                            return;
+
+                        var names = t.text();
+                        console.log(names);
+
+                        t.remove();
+
+                        if (names === LINE)
+                        {
+                            $("#line").removeAttr("disabled");
+                            return;
+                        }
+
+                        if (names === BINGO)
+                        {
+                            $("#bingo").removeAttr("disabled");
+                            return;
+                        }
+
+                        //$("#users").append("<li class=\"list-group-item\">" + names + "</li>");
+                        $("#tags").append("<a href='javascript:void(0);' alt='" + names + "'>" + names + "</a>");
+                        TagCanvas.Update('canvas');
+
+                    });
+
+                    $("#bingo").on("click", function () {
+                        if (confirm("They really yell BINGO!?"))
+                        {
+                            $("#usersLeft").append("<li class=\"list-group-item list-group-item-success\">" + BINGO + "</li>");
+                            $("#bingo").attr("disabled", "disabled");
+
+                            $("#line").attr("disabled", "disabled");
+                            $("#rollIt").attr("disabled", "disabled");
+                            $("#reverse").attr("disabled", "disabled");
+                        }
+                    });
+
+                    $("#winnersBtn").on("click", function () {
+                        window.prompt("Copy to clipboard: Ctrl+C, Enter", winners);
+                    });
+
+                    setTimeout(function () {
+                        $(".mydiv").remove();
+                        $(".carneiro").removeClass("carneiro");
+
+                        $("#disclaimer").modal('toggle');
+                    }, 6 * 1000);
+                });
+
+                // init audio
+                var songs = [
+                    "BeeGees-StayinAlive.mp3",
+                    "Coolio-_Gangsters_Paradise.mp3",
+                    "Dire_Straits_-_Sultans_of_Swing.mp3",
+                    "Los_del_Rio_-_Macarena.mp3",
+                    "Michael_Jackson_-_Billie_Jean.mp3",
+                    "Mr._President_-_Coco_Jambo.mp3",
+                    "OutKast_-_Hey_Ya.mp3",
+                    "Smoke on the Water - Deep Purple.mp3",
+                    "ZZ_Top_-_La_Grange.mp3",
+                    "A_garagem_da_vizinha_-_Quim_Barreiros.mp3",
+                    "a-ha_-_Take_On_Me.mp3",
+                    "Survivor_-_Eye_Of_The_Tiger.mp3",
+                    "MC_Hammer_-_U_Cant_Touch_This.mp3",
+                    "Original_GhostBusters_Theme_Song.mp3",
+                    "Tina_Turner_-_Simply_The_Best.mp3",
+                    "Quim_Barreiros_A_cabritinha.mp3",
+                    //"The_Verve_-_Bitter_Sweet_Symphony.mp3",
+                    "The_Offspring_-_Pretty_Fly.mp3",
+                    "blink-182_-_All_The_Small_Things.mp3",
+                    "Alien_Ant_Farm_-_Smooth_Criminal.mp3",
+                    "Nirvana_-_Smells_Like_Teen_Spirit.mp3",
+                    "Metallica_-_Fuel.mp3",
+                    "Daft_Punk_-_One_More_Time.mp3",
+                    "Michel_Teló_-_Ai_Se_Eu_Te_Pego.mp3",
+                    "PSY_-_GANGNAM_STYLE.mp3",
+                    "Bruno_Mars_-_The_Lazy_Song.mp3",
+                    "LMFAO_-_Party_Rock_.mp3",
+                    "Sexy_and_I_Know_It_LMFAO2.mp3",
+                    "Sexy_and_I_Know_It_LMFAO.mp3",
+                    "Don_Omar_-_Danza_Kuduro_ft.mp3",
+                    "Katy_Perry_-_Hot_NCold.mp3",
+                    "EMANUEL_-_O_Ritmo_Do_Amor.mp3",
+                    "Daddy_Yankee_-_Gasolina.mp3",
+                    "Daddy_Yankee_-_Gasolina2.mp3",
+                    "El_Baile_Del_Serrucho.mp3",
+                    //"El_Baile_Del_Serrucho2.mp3",
+                    "Netinho_-_Oh!_Mila.mp3",
+                    "Iran_Costa_-_o_bicho.mp3",
+                    "Excesso_-_Eu_Sou_Aquele.mp3",
+                    "Saúl_Ricardo_-_O_Bacalhau_Quer_Alho.mp3",
+                    "Mas_quem_será_o_pai_da_crianca.mp3",
+                    "Enrique_Iglesias_-_Bailando_ft.mp3",
+                    "Culture_Club_-_Karma_Chameleon.mp3",
+                    "Village_People.mp3"
+                ];
+
+                for (var i = 0; i < songs.length; i++) {
+
+                    var url = "sounds/" + songs[i];
+                    var audioElement = new Audio(url);
+                    sounds.push(audioElement);
+                }
+
+                sounds = shuffle(sounds);
+
+                $(document).keydown(function (e) {
+                    switch (e.which) {
+                        case 78: // n
+                            if (canRoll) {
+                                RollIt();
+                            }
+                            break;
+                        default:
+                            return; // exit this handler for other keys
+                    }
+                    e.preventDefault(); // prevent the default action (scroll / move caret)
+                });
+
+            });
+
+            function RollIt() {
+
+                $("#rollIt").attr("disabled", "disabled");
+
+                canRoll = false;
+                startDate = new Date();
+
+                // play sound
+                music = getSound();
+                music.load();
+                music.play();
+
+                var isOpen = $("#winnersModal").hasClass('in');
+
+                if (isOpen) {
+                    $("#winnersModal").modal('toggle');
+                }
+
+                GetItem(Math.floor(getRandomArbitrary(5, 10)));
+            }
+
+            function getElementNameAndRemoveIt() {
+                var $element = getElementName();
+                $("#users li").remove($element);
+                var text = $element.text();
+                $element.remove();
+
+                return text;
+            }
+
+            function getElementName() {
+                var index = Math.floor((Math.random() * $('#users li').length) + 1);
+                return $("#users li").eq(index);
+            }
+
+            function getTime(date) {
+                return ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2) + ":" + ("0" + date.getSeconds()).slice(-2);
+            }
+
+            function StartCloudTags() {
+                var s = (new Date).getTime() / 360;
+                o.initial[0] = 0.2 * Math.cos(s);
+                o.initial[1] = 0.2 * Math.sin(s);
+                TagCanvas.Start('canvas', 'tags', o);
+            }
+
+            function getRandomArbitrary(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            function GetItem(index) {
+                console.log("GetItem", index);
+                if (index === 0) {
+                    console.log("TagToFront");
+                    TagToFront();
+                    return;
+                }
+
+                --index;
+
+                var ms = getRandomArbitrary(500, 1500);
+                //console.log("random time", ms);
+                setTimeout(function () {
+                    //console.log("Rotate");
+                    Rotate();
+                    GetItem(index);
+                }, ms);
+            }
+
+            function Rotate() {
+                TagCanvas.RotateTag('canvas', {
+                    index: Math.floor(Math.random() * 20), lat: -60, lng: -60, time: 800, active: 1
+                });
+            }
+
+            function TagToFront() {
+                TagCanvas.TagToFront('canvas', {
+                    index: Math.floor(Math.random() * $("#tags").children().length),
+                    active: 1,
+                    callback: result
+                });
+            }
+
+            function result(e, item) {
+                var value = item.text_original;
+                $("#tags").children('a').each(function () {
+
+                    if (value === this.text) {
+
+                        $(this).remove();
+                        $("#rollIt").removeAttr("disabled");
+                        $("#usersLeft").append("<li class=\"list-group-item list-group-item-warning\">" + value + "</li>");
+                        $("#winnerName").text(value);
+
+                        if (showPictures) {
+                            $("#winnerPicDiv").show();
+                            $("#winnerPic").attr("src", "pips/" + value + ".jpg");
+                            $("#winnerPic").attr("title", value);
+                            $("#winnerPic").attr("alt", value);
+                        } else {
+                            $("#winnerPicDiv").hide();
+                        }
+
+                        music.pause();
+                        endDate = new Date();
+
+                        var dif = startDate.getTime() - endDate.getTime();
+
+                        var Seconds_from_T1_to_T2 = dif / 1000;
+                        var Seconds_Between_Dates = Math.abs(Seconds_from_T1_to_T2);
+                        console.log("Took " + Seconds_Between_Dates + " seconds to get => " + value);
+
+                        $("#winnersModal").modal('toggle');
+
+                        winners.push(value);
+
+                        canRoll = true;
+
+                        setTimeout(function () {
+                            TagCanvas.Update('canvas');
+                        }, 1000);
+                    }
+                });
+            }
+
+            function getSound() {
+                // first time             
+                if (sounds.length === 0)
+                {
+                    sounds = playedSounds.slice();
+                    playedSounds = [];
+                    sounds = shuffle(sounds);
+                }
+
+                var sound = sounds.pop();
+                playedSounds.push(sound);
+
+                return sound;
+            }
+
+            function shuffle(array) {
+                var currentIndex = array.length, temporaryValue, randomIndex;
+
+                // While there remain elements to shuffle...
+                while (0 !== currentIndex) {
+
+                    // Pick a remaining element...
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex -= 1;
+
+                    // And swap it with the current element.
+                    temporaryValue = array[currentIndex];
+                    array[currentIndex] = array[randomIndex];
+                    array[randomIndex] = temporaryValue;
+                }
+
+                return array;
+            }
+        </script>
+    </body>
+</html>
