@@ -141,6 +141,7 @@
         <script type="text/javascript">
             // Setup
             var showPictures = false;
+            var playSounds = false;
 
             // Do not change here
             var canRoll = true;
@@ -207,9 +208,11 @@
                             var value = users.pop();
                             $("#usersLeft").append("<li class=\"list-group-item list-group-item-warning\">" + value + "</li>");
                             $("#winnerName").text(value);
-                            $("#winnerPic").attr("src", "pips/" + value + ".jpg");
-                            $("#winnerPic").attr("title", value);
-                            $("#winnerPic").attr("alt", value);
+                            if (showPictures) {
+                                $("#winnerPic").attr("src", "pips/" + value + ".jpg");
+                                $("#winnerPic").attr("title", value);
+                                $("#winnerPic").attr("alt", value);
+                            }
                         }, 1000);
                     });
 
@@ -241,7 +244,6 @@
                             return;
                         }
 
-                        //$("#users").append("<li class=\"list-group-item\">" + names + "</li>");
                         $("#tags").append("<a href='javascript:void(0);' alt='" + names + "'>" + names + "</a>");
                         TagCanvas.Update('canvas');
 
@@ -319,14 +321,16 @@
                     "Village_People.mp3"
                 ];
 
-                for (var i = 0; i < songs.length; i++) {
+                if (playSounds) {
+                    for (var i = 0; i < songs.length; i++) {
 
-                    var url = "sounds/" + songs[i];
-                    var audioElement = new Audio(url);
-                    sounds.push(audioElement);
+                        var url = "sounds/" + songs[i];
+                        var audioElement = new Audio(url);
+                        sounds.push(audioElement);
+                    }
+
+                    sounds = shuffle(sounds);
                 }
-
-                sounds = shuffle(sounds);
 
                 $(document).keydown(function (e) {
                     switch (e.which) {
@@ -350,10 +354,12 @@
                 canRoll = false;
                 startDate = new Date();
 
-                // play sound
-                music = getSound();
-                music.load();
-                music.play();
+                if (playSounds) {
+                    // play sound
+                    music = getSound();
+                    music.load();
+                    music.play();
+                }
 
                 var isOpen = $("#winnersModal").hasClass('in');
 
@@ -446,7 +452,9 @@
                             $("#winnerPicDiv").hide();
                         }
 
-                        music.pause();
+                        if (playSounds) {
+                            music.pause();
+                        }
                         endDate = new Date();
 
                         var dif = startDate.getTime() - endDate.getTime();
